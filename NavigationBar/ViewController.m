@@ -16,20 +16,56 @@
 @end
 
 @implementation ViewController {
-    
+    UILabel *titleLabel;
+    UIView *navBarView;
+    CGFloat headerViewOriginalHeight ;
+    CGFloat lastVerticalOffset ;
 }
 
 @synthesize tableView;
 @synthesize tableData;
-NSInteger dataIndex = 0;
+@synthesize customNavigationBar;
+@synthesize verticalSpaceConstraint;
+@synthesize headerView;
+NSInteger dataIndex ;
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self loadData:0];
-}
--(void) setupUI {
+    titleLabel = UILabel.new;
+    dataIndex = 0;
+    headerViewOriginalHeight = 0;
+    lastVerticalOffset = 0;
+    
+    [customNavigationBar setBackgroundImage:UIImage.new forBarMetrics:UIBarMetricsDefault];
+    [customNavigationBar setShadowImage:UIImage.new];
+    [customNavigationBar setTranslucent:true];
+    [customNavigationBar setTintColor:[UIColor blueColor]];
+    
+    UINavigationItem *item = [[UINavigationItem alloc]initWithTitle:@""];
+    [titleLabel setText:@"台幣帳戶 ＄5,701,657"];
+    [titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [titleLabel setTextAlignment:NSTextAlignmentCenter];
+    [titleLabel sizeToFit];
+    
+    navBarView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, customNavigationBar.frame.size.width, customNavigationBar.frame.size.height)];
 
-    [tableView setEstimatedRowHeight:tableView.rowHeight];
-    [tableView setRowHeight:UITableViewAutomaticDimension];
+    [navBarView addSubview:titleLabel];
+    [titleLabel setCenter:navBarView.center];
+    
+    [item setTitleView:navBarView];
+    [customNavigationBar setItems:nil];
+    [customNavigationBar pushNavigationItem:item animated:true];
+    
+    headerViewOriginalHeight = headerView.frame.size.height;
+    [tableView setContentInset:UIEdgeInsetsMake(headerViewOriginalHeight, 0, 0, 0)];
+    [tableView setScrollIndicatorInsets:tableView.contentInset];
+    lastVerticalOffset = tableView.contentOffset.y;
+    
+}
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    [navBarView setAlpha:0];
+    [headerView setAlpha:1];
 }
 - (void)loadData :(NSInteger )index {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -98,6 +134,30 @@ NSInteger dataIndex = 0;
         dataIndex += 1;
         [self loadData:dataIndex];
     }
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+
+    CGFloat verticalOffset = scrollView.contentOffset.y;
+    CGFloat scrollAmout = verticalOffset - lastVerticalOffset;
+    lastVerticalOffset = verticalOffset;
+    CGFloat alphaVariation = scrollAmout / (headerViewOriginalHeight / 2);
+    CGFloat newConstant = -verticalOffset;
+    if (newConstant <= 0) {
+        newConstant = 1;
+        [navBarView setAlpha:1];
+    }else if (newConstant>=1 && newConstant<headerViewOriginalHeight/2){
+        [headerView setAlpha:0];
+        [navBarView setAlpha:navBarView.alpha + alphaVariation ];
+    }else if (newConstant>= headerViewOriginalHeight/2 && newConstant < headerViewOriginalHeight){
+        [navBarView setAlpha:0];
+        [headerView setAlpha:headerView.alpha - alphaVariation ];
+    }else if (newConstant > headerViewOriginalHeight){
+        newConstant = headerViewOriginalHeight;
+        [headerView setAlpha:1];
+    }
+    [verticalSpaceConstraint setConstant:newConstant];
+
 }
 
 @end

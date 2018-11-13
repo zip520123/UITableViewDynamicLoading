@@ -10,7 +10,15 @@
 
 @interface ViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UIView *headerView;
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *verticalSpaceConstraint;
+
+@property (weak, nonatomic) IBOutlet UINavigationBar *customNavigationBar;
+
 
 @property (nonatomic, strong) NSMutableArray *tableData;
+
+
 @end
 
